@@ -2,6 +2,7 @@
 	Server 
 	"src/main.cpp"
 	"src/HTTPServer.cpp"
+	"src/requests.cpp"
 )
 
 target_include_directories(Server PRIVATE "include")

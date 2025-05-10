@@ -1,20 +1,29 @@
 #pragma once
+#include <unordered_map>
+#include <functional>
 #include <string>
 #include "thread_pool.h"
+#include "requests.h"
 
-struct HTTPServerOptions {
-	std::string address{ "" };
-	int port{ 8080 };
-};
+namespace http {
+	using EndpointMap = std::unordered_map<std::string, std::function<void(const ParsedRequest&, Response&)>>;
 
-class HTTPServer {
-public:
-	HTTPServer(const HTTPServerOptions& options);
-	void start();
-private:
-	void init();
+	struct HTTPServerOptions {
+		std::string address{ "" };
+		int port{ 8080 };
+	};
 
-	HTTPServerOptions options;
-	int listenSocket = -1;
-	ThreadPool threadPool;
-};
+	class HTTPServer {
+	public:
+		HTTPServer(const HTTPServerOptions& options, EndpointMap&& endpoints = {});
+		void start();
+	private:
+		void init();
+
+		HTTPServerOptions options;
+		int listenSocket = -1;
+		ThreadPool threadPool;
+		const EndpointMap endpoints;
+	};
+}
+
