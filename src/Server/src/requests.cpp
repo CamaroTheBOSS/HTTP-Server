@@ -58,9 +58,37 @@ namespace http {
 	}
 
 	static size_t parseEndpoint(const std::string& rawRequest, ParsedRequest& parsedRequest, size_t start) {
-		size_t end = rawRequest.find(' ', start);
-		parsedRequest.endpoint = std::string{ rawRequest.begin() + start, rawRequest.begin() + end };
-		return end;
+		size_t urlEnd = rawRequest.find(' ', start);
+		std::string url = std::string{ rawRequest.begin() + start, rawRequest.begin() + urlEnd };
+		size_t endpointEnd = url.find('?');
+		if (endpointEnd == std::string::npos) {
+			parsedRequest.endpoint = std::move(url);
+			return urlEnd;
+		}
+		parsedRequest.endpoint = url.substr(0, endpointEnd);
+
+		// Parse url parameters
+		size_t keyStart = endpointEnd + 1;
+		size_t keyEnd = 0;
+		size_t valueEnd = 0;
+		do {
+			keyEnd = url.find('=', keyStart);
+			valueEnd = url.find('&', keyEnd + 1);
+			if (keyEnd == std::string::npos) {
+				return urlEnd;
+			}
+			size_t pairEnd = valueEnd;
+			if (valueEnd == std::string::npos) {
+				pairEnd = url.size();
+			}
+			parsedRequest.urlParams.emplace(
+				url.substr(keyStart, keyEnd - keyStart),
+				url.substr(keyEnd + 1, pairEnd - keyEnd - 1)
+			);
+			keyStart = pairEnd + 1;
+		} while (valueEnd != std::string::npos);
+		
+		return urlEnd;
 	}
 
 	static Result<size_t> parseVersion(const std::string& rawRequest, ParsedRequest& parsedRequest, size_t start) {

@@ -15,6 +15,7 @@ namespace http {
 		Method method;
 		std::string endpoint;
 		std::unordered_map<std::string, std::string> headers;
+		std::unordered_map<std::string, std::string> urlParams;
 		std::string body;
 	};
 
