@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <functional>
 #include <string>
+#include <filesystem>
 #include "thread_pool.h"
 #include "requests.h"
 
@@ -11,6 +12,7 @@ namespace http {
 	struct HTTPServerOptions {
 		std::string address{ "" };
 		int port{ 8080 };
+		std::string staticContentRoot;
 	};
 
 	class HTTPServer {
@@ -18,9 +20,10 @@ namespace http {
 		HTTPServer(const HTTPServerOptions& options, EndpointMap&& endpoints = {});
 		void start();
 	private:
+		bool tryFindStaticContent(const ParsedRequest& request, Response& response);
 		void init();
 
-		HTTPServerOptions options;
+		const HTTPServerOptions options;
 		int listenSocket = -1;
 		ThreadPool threadPool;
 		const EndpointMap endpoints;

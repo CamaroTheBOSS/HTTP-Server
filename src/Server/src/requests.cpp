@@ -13,14 +13,17 @@ namespace http {
 	};
 
 	std::unordered_map<std::string_view, Version> httpVersions {
+		{"HTTP/1.0", Version::One},
 		{"HTTP/1", Version::One},
 		{"HTTP/1.1", Version::OneOne},
 		{"HTTP/2", Version::Two},
+		{"HTTP/2.0", Version::Two},
 		{"HTTP/3", Version::Three},
+		{"HTTP/3.0", Version::Three},
 	};
 
 	std::unordered_map<Version, std::string> httpVersionsToString {
-		{Version::One, "HTTP/1"},
+		{Version::One, "HTTP/1.0"},
 		{Version::OneOne, "HTTP/1.1"},
 		{Version::Two, "HTTP/2"},
 		{Version::Three, "HTTP/3"},
@@ -48,7 +51,7 @@ namespace http {
 		std::string_view methodStr{ rawRequest.begin(), rawRequest.begin() + end };
 		auto it = httpMethods.find(methodStr);
 		if (it == httpMethods.cend()) {
-			return Result<size_t>::failure("Unrecognized HTTP method '" + std::string{ methodStr } + "'");
+			return Result<size_t>::failure("Unrecognized HTTP method '" + std::string{ methodStr } + "'\n");
 		}
 		parsedRequest.method = it->second;
 		return Result<size_t>::success(std::move(end));
@@ -65,7 +68,7 @@ namespace http {
 		std::string_view versionStr{ rawRequest.begin() + start, rawRequest.begin() + end };
 		auto it = httpVersions.find(versionStr);
 		if (it == httpVersions.cend()) {
-			return Result<size_t>::failure("Unrecognized HTTP version '" + std::string{ versionStr } + "'");
+			return Result<size_t>::failure("Unrecognized HTTP version '" + std::string{ versionStr } + "'\n");
 		}
 		parsedRequest.version = it->second;
 		return Result<size_t>::success(std::move(end));

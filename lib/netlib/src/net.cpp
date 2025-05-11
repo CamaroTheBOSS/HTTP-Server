@@ -75,7 +75,7 @@ namespace net {
 	}
 
 	Result<bool> sendData(const int connection, const std::string& msg) {
-		int bytesSent = send(connection, msg.c_str(), msg.size() + 1, 0);
+		int bytesSent = send(connection, msg.c_str(), msg.size(), 0);
 		if (bytesSent > 0) {
 			return Result<bool>::success(true);
 		}

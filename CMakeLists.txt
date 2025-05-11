@@ -14,5 +14,6 @@ project (
 )
 
 add_subdirectory("lib")
+add_subdirectory("static")
 add_subdirectory ("src/Server")
 

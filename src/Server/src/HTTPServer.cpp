@@ -12,7 +12,7 @@
 #include "net.h"
 #include "errno.h"
 #include "thread_safe_queue.h"
-#include "HTTPParser.h"
+#include "static.h"
 
 namespace http {
 	HTTPServer::HTTPServer(const HTTPServerOptions& options, EndpointMap&& endpoints) :
@@ -38,12 +38,28 @@ namespace http {
 		listenSocket = boundSocketResult.result;
 	}
 
-	static void sendResponse(const int connection, const Response& response) {
+	static void sendResponse(const int connection, Response& response) {
+		response.headers.emplace("Cache-Control", "no-cache, no-store, must-revalidate");
+		response.headers.emplace("Pragma", "no-cache");
+		response.headers.emplace("Expires", "0");
 		auto sendResult = net::sendData(connection, response.serialize());
 		if (sendResult.failed()) {
 			std::cout << sendResult.errMsg;
 		}
 		close(connection);
+	}
+
+	bool HTTPServer::tryFindStaticContent(const ParsedRequest& request, Response& response) {
+		if (request.endpoint.ends_with(".js") || request.endpoint.ends_with(".css")) {
+			return html::readHtmlIfExists(options.staticContentRoot + request.endpoint, response);
+		}
+		else if (request.endpoint == "/") {
+			return html::readHtmlIfExists(options.staticContentRoot + "/index.html", response);
+		}
+		else {
+			return html::readHtmlIfExists(options.staticContentRoot + request.endpoint + ".html", response);
+		}
+		return false;
 	}
 
 	void HTTPServer::start() {
@@ -73,6 +89,10 @@ namespace http {
 					}
 					auto it = endpoints.find(request.result.endpoint);
 					if (it == endpoints.cend()) {
+						if (tryFindStaticContent(request.result, response)) {
+							response.code = 200;
+							return sendResponse(conn, response);
+						}
 						std::cout << "Endpoint '" + request.result.endpoint + "' not implemented";
 						response.code = 501;
 						return sendResponse(conn, response);

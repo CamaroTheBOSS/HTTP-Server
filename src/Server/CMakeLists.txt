@@ -3,7 +3,7 @@
 	"src/main.cpp"
 	"src/HTTPServer.cpp"
 	"src/requests.cpp"
-)
+	"src/static.cpp")
 
 target_include_directories(Server PRIVATE "include")
 target_link_libraries(Server PRIVATE Netlib Threadlib)
